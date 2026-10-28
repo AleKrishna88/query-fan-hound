@@ -4,10 +4,12 @@ Nessuna dipendenza esterna: le API key arrivano come parametro e non vengono mai
 """
 
 import json
+import re
 import time
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
+from urllib.parse import parse_qsl, unquote, urlencode, urlsplit, urlunsplit
 
 TIMEOUT = 180
 
@@ -55,12 +57,34 @@ def call_openai(prompt, key, model, country="", effort=""):
     return raw, parse_openai(raw)
 
 
+def clean_url(url):
+    # OpenAI aggiunge utm_source=openai ai link citati: senza toglierlo la stessa pagina comparirebbe due volte.
+    parts = urlsplit(url)
+    query = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True)
+             if not (k == "utm_source" and v in ("openai", "chatgpt.com"))]
+    return urlunsplit(parts._replace(query=urlencode(query)))
+
+
+def title_from_url(url, max_segments=3):
+    """Titolo leggibile per le fonti che OpenAI restituisce senza titolo, es. visitnorway.com › aurora › best-time."""
+    parts = urlsplit(url)
+    host = parts.netloc.lower().removeprefix("www.")
+    segments = [unquote(s) for s in parts.path.split("/") if s]
+    if segments:
+        segments[-1] = re.sub(r"\.(html?|php|aspx?)$", "", segments[-1])
+    segments = [s for s in segments if s]
+    if len(segments) > max_segments:
+        segments = ["…", *segments[-max_segments:]]
+    return " › ".join([host, *segments])
+
+
 def parse_openai(raw):
     queries, sources, answer = [], {}, []
 
     def add_source(url, title="", cited=False):
         if not url:
             return
+        url = clean_url(url)
         src = sources.setdefault(url, {"url": url, "title": "", "cited": False})
         src["title"] = src["title"] or title or ""
         src["cited"] = src["cited"] or cited
@@ -89,6 +113,10 @@ def parse_openai(raw):
                 for ann in part.get("annotations", []):
                     if ann.get("type") == "url_citation":
                         add_source(ann.get("url"), ann.get("title", ""), cited=True)
+
+    # Le fonti solo consultate arrivano senza titolo: lo ricaviamo dall'URL.
+    for src in sources.values():
+        src["title"] = src["title"] or title_from_url(src["url"])
 
     return {
         "model": raw.get("model", ""),
