@@ -54,7 +54,7 @@ h1, h2, h3, .qfh-title { font-family: 'Space Grotesk', sans-serif !important; le
 
 .qfh-side-brand { display: flex; align-items: center; gap: 10px; margin: -6px 0 6px; }
 .qfh-side-brand svg { width: 42px; height: 42px; }
-.qfh-side-brand b { font-family: 'Space Grotesk', sans-serif; font-size: 20px; color: #fff; }
+.qfh-side-brand b { font-family: 'Space Grotesk', sans-serif; font-size: 20px; color: inherit; }
 .qfh-note { font-size: 12.5px; color: #9EA3C0; line-height: 1.45; }
 
 .qfh-engine { border-radius: 16px; padding: 14px 16px 6px; background: #1B1F33; border: 1px solid rgba(255,255,255,.06);
@@ -73,7 +73,9 @@ h1, h2, h3, .qfh-title { font-family: 'Space Grotesk', sans-serif !important; le
 .qfh-err { font-size: 14px; color: #FF8A80; padding: 6px 0; }
 
 [data-testid="stMetric"] { background: #1B1F33; border: 1px solid rgba(255,255,255,.06); border-radius: 16px; padding: 14px 18px; }
-[data-testid="stMetricValue"] { font-family: 'Space Grotesk', sans-serif; }
+[data-testid="stMetricValue"], [data-testid="stMetricValue"] * { font-family: 'Space Grotesk', sans-serif; color: #FFFFFF !important; }
+/* Colori espliciti: le card restano scure anche se Streamlit è in tema chiaro. */
+[data-testid="stMetricLabel"], [data-testid="stMetricLabel"] * { color: #B4B8D4 !important; }
 .stButton > button[kind="primary"] { background: linear-gradient(90deg, #FFB547, #FF5E62); border: 0; color: #1A0E08; font-weight: 700; }
 .stButton > button[kind="primary"]:hover { filter: brightness(1.06); color: #1A0E08; }
 .qfh-footer { font-size: 12.5px; color: #8A8FAE; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.07); padding-top: 14px; }
